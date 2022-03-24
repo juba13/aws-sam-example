@@ -1,0 +1,37 @@
+{
+  "name": "sam-example-app",
+  "version": "1.0.0",
+  "description": "sam example",
+  "main": "dist/app.js",
+  "author": "Md Jubayer",
+  "license": "MIT",
+  "scripts": {
+    "start": "npm run build && sudo sam local start-api",
+    "package": "sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
+    "deploy": "sam deploy --region us-east-1 --template-file template-out.yaml --stack-name sam-test-3 --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=development 'OrganizationParam'=sample-org --no-fail-on-empty-changeset ",
+    "package-deploy": "npm run build && npm run package && npm run deploy",
+    "delete-stack": "aws cloudformation delete-stack --stack-name sam-test-3  --region us-east-1 ",
+    "build": "npx webpack-cli"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.36.1",
+    "@aws-sdk/client-ssm": "^3.36.1",
+    "aws-xray-sdk-core": "^3.3.3",
+    "lodash-es": "^4.17.21"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.8",
+    "@babel/preset-env": "^7.16.11",
+    "@types/node": "^17.0.17",
+    "jest": "^27.0.6",
+    "jest-cli": "^27.0.6",
+    "aws-sdk": "^2.556.0",
+    "babel-loader": "^8.2.3",
+    "webpack": "^5.70.0",
+    "source-map-loader": "^3.0.0",
+    "webpack-cli": "^4.7.2",
+    "webpack-node-externals": "^3.0.0"
+  }
+}
+
+
