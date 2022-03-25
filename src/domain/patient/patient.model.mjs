@@ -1,5 +1,4 @@
-import { Model } from "../Model.mjs";
-import { validate } from "../../service/validator_service.mjs";
+import { Model } from "../domain.mjs";
 const schema = {
   type : "object",
   title : "The patient infomation input body",
@@ -13,21 +12,21 @@ const schema = {
   required : ["name", "age", "mail"]
 }
 
-class Patient extends Model {
-  constructor(input = {}) {
-    super();
-    this.#bindData(input) 
+export class Patient extends Model {
+  static  getModelName = () => {
+    return "patient";
+  } 
+  constructor() {
+    super(Patient.getModelName());
   }
-  #bindData = () =>{
+  bindData = (input = {}) =>{
     this.name = input.name;
     this.age = input.age;
     this.gender = input.gender;
     this.email = input.email;
     this.address = input.address;
+    return this;
   }
-  bindContextData = (input) =>{
-    validate (schema,input)
-    this.#bindData(input) 
-  } 
+  static create = () => { return new Patient()} 
 }
 

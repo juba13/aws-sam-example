@@ -1,4 +1,4 @@
-export class AppLog {
+class AppLog {
   static #LogLevel = Object.freeze({
     INFO : Symbol(1),
     DEBUG : Symbol(2),
@@ -29,10 +29,11 @@ export class AppLog {
         console.log(data,...args)
     }
   }
-  static log = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.INFO, data,...args) }
+  // static log = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.INFO, data,...args) }
   static info = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.INFO, data,...args) }
   static debug = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.DEBUG, data,...args) }
   static warn = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.WARN, data,...args) }
   static error = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.ERROR, data,...args) }
   static critical = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.CRITICAL, data,...args) }
 }
+export { AppLog as log}

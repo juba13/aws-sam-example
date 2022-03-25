@@ -1,1 +1,1 @@
-export {handler as handler} from './lambda/SSMLambda.mjs';
+export {handler as modelHandler} from './lambda/SSMLambda.mjs';

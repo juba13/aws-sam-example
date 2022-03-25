@@ -1,7 +1,9 @@
 import { DynamoDB} from 'aws-sdk';
 const dynamo = new AWS.DynamoDB.DocumentClient();
 
-export const save = async (tableName , item ) => {
+class DBService{
+	
+static save = async (tableName , item ) => {
     dynamo.put({ TableName:table, Item:item }, function(err, data) {
             if (err) {
                 console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
@@ -11,7 +13,7 @@ export const save = async (tableName , item ) => {
     });
 };
 
-export const get = async (tableName , key,value ) => {
+static get = async (tableName , key,value ) => {
 	return dynamo
 		.get({ Key: {key: value},TableName: tableName})
 		.promise()
@@ -22,11 +24,11 @@ export const get = async (tableName , key,value ) => {
 		});
 };
 
-export const deleteItem = async (tableName , key,value ) => {
+static deleteItem = async (tableName , key,value ) => {
     return dynamo.delete((tableName , key,value )).promise();
 };
 
-module.exports.updateItem = (itemId, item) => {
+static updateItem = (itemId, item) => {
 	
 	let vbl = "x";
 	let adder = "y";
@@ -68,3 +70,7 @@ module.exports.updateItem = (itemId, item) => {
 			return error;
 		});
 };
+
+}
+
+export { DBService as db }

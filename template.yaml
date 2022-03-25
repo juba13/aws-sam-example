@@ -1,27 +1,54 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
+
 Description: >
   sam-test-2
 
+Parameters:
+  Stage:
+    Type: String
+    Description: Stage to deploy resources to
+    AllowedValues:
+      - dev
+      - staging
+      - production
+
+
+Conditions:
+  IsProduction: !Equals [ !Ref Stage, production ]
+
+
+
 Globals:
+  Api:
+    OpenApiVersion: 3.0.1 
   Function:
-    Timeout: 3
+    Runtime: nodejs14.x
+    Architectures:
+      - x86_64
+    MemorySize: 128
+    Timeout: 5
+    Tracing: Active
+    Tags:
+      environment: !Ref Stage
 
 Resources:
-  HelloWorldFunction:
+  ModelHandelerFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: dist/
-      Handler: app.handler
-      Runtime: nodejs14.x
-      Architectures:
-        - x86_64
+      Handler: app.modelHandler
       Events:
-        HelloWorld:
-          Type: Api 
+        ModelPostAPI:
+          Type: Api
           Properties:
-            Path: /hello
-            Method: get
+            Path: /model/{modelName}
+            Method: POST
+        ModelGetAPI:
+          Type: Api
+          Properties:
+            Path: /model/{modelName}/{modelId}
+            Method: GET 
 
 Outputs:
   HelloWorldApi:
