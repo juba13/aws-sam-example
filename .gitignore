@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+.aws-sam
+template-out.yaml
+.aws-sam/build.toml
