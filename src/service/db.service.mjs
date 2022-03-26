@@ -1,34 +1,25 @@
 import { DynamoDB} from 'aws-sdk';
-const dynamo = new AWS.DynamoDB.DocumentClient();
+import { error} from '../service/error.service.mjs';
+import { log} from '../service/log.service.mjs';
+const dynamo = new DynamoDB.DocumentClient();
 
 class DBService{
 	
-static save = async (tableName , item ) => {
-    dynamo.put({ TableName:table, Item:item }, function(err, data) {
-            if (err) {
-                console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
-            } else {
-                console.log("Added item:", JSON.stringify(data, null, 2));
-            }
-    });
+static save =  (tableName , item ) => {
+	return  dynamo
+	.put({ TableName:tableName, Item:item })
+	.promise();
 };
 
-static get = async (tableName , key,value ) => {
-	return dynamo
-		.get({ Key: {key: value},TableName: tableName})
-		.promise()
-		.then((result) => {
-			return result.Item;
-		}, (error) => {
-			return error;
-		});
+static getById = (tableName ,value ) => {
+	return dynamo.get({ Key: {id: value},TableName: tableName}).promise();
 };
 
-static deleteItem = async (tableName , key,value ) => {
-    return dynamo.delete((tableName , key,value )).promise();
+static deleteItemById = async (tableName ,value ) => {
+	return dynamo.delete({ Key: {id: value},TableName: tableName}).promise();
 };
 
-static updateItem = (itemId, item) => {
+static updateItem = (tableName ,itemId, item) => {
 	
 	let vbl = "x";
 	let adder = "y";
@@ -51,11 +42,11 @@ static updateItem = (itemId, item) => {
 	console.log(updateexp, expattvalues);
 
 	const params = {
-		TableName: TABLE_NAME,
+		TableName: tableName,
 		Key: {
-			productId: itemId
+			id: itemId
 		},
-		ConditionExpression: 'attribute_exists(productId)',
+		ConditionExpression: 'attribute_exists(id)',
 		UpdateExpression: updateexp,
 		ExpressionAttributeValues: expattvalues,
 		ReturnValues: 'ALL_NEW'
@@ -63,12 +54,7 @@ static updateItem = (itemId, item) => {
 
 	return dynamo
 		.update(params)
-		.promise()
-		.then(response => {
-			return response.Attributes;
-		}, (error) => {
-			return error;
-		});
+		.promise();
 };
 
 }
