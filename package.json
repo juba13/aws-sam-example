@@ -2,16 +2,21 @@
   "name": "sam-example-app",
   "version": "1.0.0",
   "description": "sam example",
-  "main": "dist/app.js",
+  "main": "sre/app.js",
   "author": "Md Jubayer",
   "license": "MIT",
+  "config": {
+    "stackName": "sam-example-app-stack",
+    "bucketName": "sam-example-app-bucket"
+  },
   "scripts": {
-    "start": "npm run build && sudo sam local start-api",
-    "package": "sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
-    "deploy": "sam deploy --region us-east-1 --template-file template-out.yaml --stack-name sam-test-3 --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=development 'OrganizationParam'=sample-org --no-fail-on-empty-changeset ",
+    "package":  "sam build --region us-east-1 && sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
+    "describe": "aws cloudformation describe-stacks --region us-east-1 --stack-name $npm_package_config_stackName --query 'Stacks[].Outputs'",
+    "deploy":  "sam deploy --region us-east-1 --template-file template-out.yaml --stack-name $npm_package_config_stackName  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=development 'OrganizationParam'=sample-org --no-fail-on-empty-changeset ",
     "package-deploy": "npm run build && npm run package && npm run deploy",
-    "delete-stack": "aws cloudformation delete-stack --stack-name sam-test-3  --region us-east-1 ",
-    "build": "npx webpack-cli"
+    "delete-stack": "aws cloudformation delete-stack --stack-name $npm_package_config_stackName --region us-east-1 ",
+    "build": "npx webpack-cli",
+    "local-run": "npm run build && sudo sam local start-api"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.36.1",
