@@ -5,6 +5,6 @@ export const validate = (schema, data) => {
     const validate = ajv.compile(schema)
     const valid = validate(data)
     if (!valid) {
-        throw error.validationError(validate.errors)
+        throw error.validationError(ajv.errorsText(validate.errors))
     }
 }
