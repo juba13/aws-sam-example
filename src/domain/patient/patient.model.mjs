@@ -1,30 +1,33 @@
-import { Model } from "../domain.mjs";
+import { error } from "../../service/error.service.mjs";
+import { Model } from "../model.mjs";
 const schema = {
   type : "object",
   title : "The patient infomation input body",
   properties: {
     age: {type: "integer"},
-    name: {type: "string"},
+    fullname: {type: "string"},
     gender: {type: "string"},
-    mail: {type: "string"},
+    email: {type: "string"},
     address :{type: "string"}
   },
-  required : ["name", "age", "mail"]
+  required : ["fullname", "age", "email"]
 }
 
 export class Patient extends Model {
+
   static  getModelName = () => {
     return "patient";
   } 
   constructor() {
-    super(Patient.getModelName());
+    super("dynamodbPatientTable",schema);
   }
   bindData = (input = {}) =>{
-    this.name = input.name;
-    this.age = input.age;
-    this.gender = input.gender;
-    this.email = input.email;
-    this.address = input.address;
+    this.id = input?.id;
+    this.fullname = input?.fullname;
+    this.age = input?.age;
+    this.gender = input?.gender;
+    this.email = input?.email;
+    this.address = input?.address;
     return this;
   }
   static create = () => { return new Patient()} 

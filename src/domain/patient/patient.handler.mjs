@@ -5,16 +5,16 @@ import {Patient} from "./patient.model.mjs"
 
 
 export const handler = async (event, context) => {
-    log.info(event, context);
-    switch (event.httpMethod) {
+   log.info(event, context);
+	switch (event.httpMethod) {
 		case 'DELETE':
-			return  deleteItem(event);
+			return  deleteItemById(event);
 		case 'GET':
-			return getItem(event);
+			return  getItemById(event);
 		case 'POST': 
-			return saveItem(event);
+			return  saveItem(event);
 		case 'PUT': 
-			return updateItem(event);
+			return  updateItem(event);
 		default:
 			throw error.notFoundError("Method notfound : " +event.httpMethod )
 	}
@@ -22,21 +22,25 @@ export const handler = async (event, context) => {
 
 const saveItem = (event) => {
 	const patient = Patient.create().bindData(JSON.parse(event.body));
-	patient.isValid()
-	return db.save(patient.getTableName,patient)
+	patient.checkValidation().generateId();
+	return  db.save(patient.getTableName(),patient);
 }
-const getItem = (event) => {
-	const itemId = event.pathParameters.id;
-	return db.getItem(Patient.create().getTableName(),itemId)
-}
-
-const deleteItem = (event) => {
-	const itemId = event.pathParameters.id;
-	return db.deleteItem(Patient.create().getTableName(),itemId)
+const getItemById =  (event) => {
+	const itemId = event.pathParameters.modelId;
+	return  db.getById(Patient.create().getTableName(),itemId);
 }
 
-function updateItem(event, callback) {
+const deleteItemById =  (event) => {
+	const itemId = event.pathParameters.id;
+	return  db.deleteItemById(Patient.create().getTableName(),itemId)
+}
+
+const updateItem =  (event) => {
 	const patient = Patient.create().bindData(JSON.parse(event.body));
-	patient.isValid()
-	return db.updateItem(patient.getTableName,patient)
+	patient.checkValidation();
+	if(patient.id?.length>0){
+		return  db.updateItem(patient.getTableName(),patient.id,patient)
+	} else{
+		throw error.notFoundError("id not found");
+	}
 }
