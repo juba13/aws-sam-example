@@ -3,40 +3,225 @@ Transform: AWS::Serverless-2016-10-31
 Description: 'sam-test-2
 
   '
+Parameters:
+  Stage:
+    Type: String
+    Default: production
+    Description: Stage to deploy resources to
+    AllowedValues:
+    - staging
+    - production
+Conditions:
+  IsProduction:
+    Fn::Equals:
+    - Ref: Stage
+    - production
 Globals:
+  Api:
+    OpenApiVersion: 3.0.1
   Function:
-    Timeout: 3
+    Runtime: nodejs14.x
+    Architectures:
+    - x86_64
+    MemorySize: 128
+    Timeout: 5
+    Tracing: Active
+    Tags:
+      project: aws-sam-example
+      environment:
+        Ref: Stage
 Resources:
-  HelloWorldFunction:
+  ApiGwAccountConfig:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+        - ApiGatewayLoggingRole
+        - Arn
+    Metadata:
+      SamResourceId: ApiGwAccountConfig
+  ApiGatewayLoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+      - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      SamResourceId: ApiGatewayLoggingRole
+  ApiGatewayEndpoint:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: models-api-${Stage}
+      StageName:
+        Ref: Stage
+      MethodSettings:
+      - LoggingLevel: INFO
+        ResourcePath: /*
+        HttpMethod: '*'
+      TracingEnabled: true
+      Variables:
+        LAMBDA_ALIAS:
+          Ref: Stage
+      Auth:
+        ApiKeyRequired: false
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          UsagePlanName: GatewayAuthorization
+      Cors:
+        AllowMethods: '''*'''
+        AllowHeaders: '''*'''
+        AllowOrigin: '''*'''
+        AllowCredentials: '''*'''
+    Metadata:
+      SamResourceId: ApiGatewayEndpoint
+  ModelHandelerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/8bec782b6e6152172aaffd3fce58c8a0
-      Handler: app.handler
-      Runtime: nodejs14.x
-      Architectures:
-      - x86_64
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/77922e81b0dc5eea868b3882c28e2947
+      Handler: app.modelHandler
       Events:
-        HelloWorld:
+        ModelPostAPI:
           Type: Api
           Properties:
-            Path: /hello
-            Method: get
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+            Path: /model/{modelName}
+            Method: POST
+        ModelUpdateAPI:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+            Path: /model/{modelName}
+            Method: PUT
+        ModelGetAPI:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+            Path: /model/{modelName}/{modelId}
+            Method: GET
+        ModelDeleteAPI:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+            Path: /model/{modelName}/{modelId}
+            Method: DELETE
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: dynamodbPatientTable
     Metadata:
-      SamResourceId: HelloWorldFunction
+      SamResourceId: ModelHandelerFunction
+  dynamodbPatientTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName: dynamodbPatientTable
+    Metadata:
+      SamResourceId: dynamodbPatientTable
+  UploadRequestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/77922e81b0dc5eea868b3882c28e2947
+      Handler: app.assetHandler
+      Environment:
+        Variables:
+          UploadBucket:
+            Ref: S3UploadBucket
+      Policies:
+      - S3WritePolicy:
+          BucketName:
+            Ref: S3UploadBucket
+      Events:
+        UploadAssetAPI:
+          Type: Api
+          Properties:
+            Path: /asset/uploads
+            Method: get
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+        UploadAssetAPIOption:
+          Type: Api
+          Properties:
+            Path: /asset/uploads
+            Method: OPTIONS
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+    Metadata:
+      SamResourceId: UploadRequestFunction
+  S3UploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - PUT
+          - HEAD
+          AllowedOrigins:
+          - '*'
+    Metadata:
+      SamResourceId: S3UploadBucket
+  S3AppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    Metadata:
+      SamResourceId: S3AppBucket
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Sid: PublicReadForGetBucketObjects
+          Effect: Allow
+          Principal: '*'
+          Action: s3:GetObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::${S3AppBucket}/*
+      Bucket:
+        Ref: S3AppBucket
+    Metadata:
+      SamResourceId: BucketPolicy
 Outputs:
-  HelloWorldApi:
-    Description: API Gateway endpoint URL for Prod stage for Hello World function
+  ApiGatewayEndpointId:
+    Description: ApiGatewayEndpoint ID
     Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
-  HelloWorldFunction:
-    Description: Hello World Lambda Function ARN
+      Ref: ApiGatewayEndpoint
+  ApiKey:
+    Description: 'You can find your API Key in the AWS console: (Put in the request
+      HEADER as ''x-api-key'')'
+    Value:
+      Fn::Sub: https://console.aws.amazon.com/apigateway/home?region=${AWS::Region}#/api-keys/${ApiGatewayEndpointApiKey}
+  ApiGatewayEndpointUrl:
+    Description: ApiGatewayEndpoint endpoint URL for
+    Value:
+      Fn::Sub: https://${ApiGatewayEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/
+  S3UploadBucketName:
+    Description: S3 bucket for application uploads
+    Value:
+      Ref: S3UploadBucket
+  WebsiteURL:
     Value:
       Fn::GetAtt:
-      - HelloWorldFunction
-      - Arn
-  HelloWorldFunctionIamRole:
-    Description: Implicit IAM Role created for Hello World function
-    Value:
-      Fn::GetAtt:
-      - HelloWorldFunctionRole
-      - Arn
+      - S3AppBucket
+      - WebsiteURL
+    Description: URL for website hosted on S3

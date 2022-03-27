@@ -16,6 +16,7 @@ export async function handler(event, context) {
       const handler = getModelHandeler(event.pathParameters.modelName);
       return response.ok(await handler(event)) 
     } catch (e) {
+      
       return response.error(e.stack)
     }
 }; 

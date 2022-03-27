@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <title>Upload file to S3</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.22.0/axios.min.js"></script>
+  </head>
+<body>
+
+<input type="file" id="fileInput">
+<p>Upload percentage: <span id="uploadPercent"></span> </p>
+<br><br>
+<img src="" id="imgPreview" height="400" width="600" />
+
+<script>
+document.getElementById("fileInput").addEventListener('change', handleFileChange);
+async function handleFileChange(e) {
+    const URL = 'https://l0ttv7ql5g.execute-api.us-east-1.amazonaws.com/production/asset/uploads' ;
+
+  try {
+    const file = e.target.files[0];
+    const { type, name } = file;
+
+    // Get upload URL
+    let resp = await axios({
+            method: 'get',
+            url: URL,
+            // headers : { 'x-api-key':'lnoIqMIT9haNptaxqpOYg4i5fv44sdj93jwSNMtP','Access-Control-Allow-Origin': '*','Content-Type': 'application/json'},
+            params : {contentType: type, ext: name.split(".").pop(),isPublic: true}
+        });
+
+   //  Upload at URL
+    const {
+      uploadURL,
+      fileUrl
+    } = resp.data;
+    await axios.put(uploadURL, file, {
+      headers: {
+        "Content-Type": file.type
+      },
+      onUploadProgress: (e) => {
+        //  Show progress
+        var percentCompleted = Math.round((e.loaded * 100) / e.total);
+        document.getElementById("uploadPercent").innerHTML = percentCompleted;
+      },
+    });
+
+    // suuccessfully uploaded
+    document.getElementById("uploadPercent").innerHTML = "Completed";
+    document.getElementById("imgPreview").setAttribute("src", fileUrl);
+
+  } catch (e) {
+
+    // Log errors
+    console.log(e);
+  }
+}
+</script>
+
+</body>
+</html>
