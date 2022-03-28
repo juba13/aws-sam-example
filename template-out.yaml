@@ -73,6 +73,7 @@ Resources:
           Ref: Stage
       Auth:
         ApiKeyRequired: false
+        AddDefaultAuthorizerToCorsPreflight: true
         UsagePlan:
           CreateUsagePlan: PER_API
           UsagePlanName: GatewayAuthorization
@@ -86,7 +87,7 @@ Resources:
   ModelHandelerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/77922e81b0dc5eea868b3882c28e2947
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/a1289ae7588a6b51ef22ec6f23bb54cf
       Handler: app.modelHandler
       Events:
         ModelPostAPI:
@@ -135,16 +136,16 @@ Resources:
   UploadRequestFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/77922e81b0dc5eea868b3882c28e2947
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/a1289ae7588a6b51ef22ec6f23bb54cf
       Handler: app.assetHandler
       Environment:
         Variables:
           UploadBucket:
-            Ref: S3UploadBucket
+            Ref: S3OriginalImageBucket
       Policies:
       - S3WritePolicy:
           BucketName:
-            Ref: S3UploadBucket
+            Ref: S3OriginalImageBucket
       Events:
         UploadAssetAPI:
           Type: Api
@@ -162,7 +163,25 @@ Resources:
               Ref: ApiGatewayEndpoint
     Metadata:
       SamResourceId: UploadRequestFunction
-  S3UploadBucket:
+  ThumbnailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/a1289ae7588a6b51ef22ec6f23bb54cf
+      Handler: app.thumbnailHandler
+      Environment:
+        Variables:
+          ThumnilBucket:
+            Ref: S3ThumnilImageBucket
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: S3OriginalImageBucket
+            Events: s3:ObjectCreated:*
+    Metadata:
+      SamResourceId: ThumbnailFunction
+  S3OriginalImageBucket:
     Type: AWS::S3::Bucket
     Properties:
       CorsConfiguration:
@@ -176,7 +195,22 @@ Resources:
           AllowedOrigins:
           - '*'
     Metadata:
-      SamResourceId: S3UploadBucket
+      SamResourceId: S3OriginalImageBucket
+  S3ThumnilImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - PUT
+          - HEAD
+          AllowedOrigins:
+          - '*'
+    Metadata:
+      SamResourceId: S3ThumnilImageBucket
   S3AppBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -215,10 +249,14 @@ Outputs:
     Description: ApiGatewayEndpoint endpoint URL for
     Value:
       Fn::Sub: https://${ApiGatewayEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/
-  S3UploadBucketName:
+  S3OriginalImageBucketName:
     Description: S3 bucket for application uploads
     Value:
-      Ref: S3UploadBucket
+      Ref: S3OriginalImageBucket
+  S3ThumnilImageBucket:
+    Description: S3 bucket for application uploads
+    Value:
+      Ref: S3ThumnilImageBucket
   WebsiteURL:
     Value:
       Fn::GetAtt:

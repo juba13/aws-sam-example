@@ -29,7 +29,7 @@ class AppLog {
         console.log(data,...args)
     }
   }
-  // static log = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.INFO, data,...args) }
+  static log = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.INFO, data,...args) }
   static info = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.INFO, data,...args) }
   static debug = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.DEBUG, data,...args) }
   static warn = (data,...args) => {  AppLog.#baseLog(AppLog.#LogLevel.WARN, data,...args) }

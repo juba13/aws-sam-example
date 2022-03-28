@@ -10,9 +10,9 @@
     "bucketName": "sam-example-app-bucket"
   },
   "scripts": {
-    "package":  "sam build --region us-east-1 && sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
+    "package": "sam build --region us-east-1 && sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
     "describe": "aws cloudformation describe-stacks --region us-east-1 --stack-name $npm_package_config_stackName --query 'Stacks[].Outputs'",
-    "deploy":  "sam deploy --region us-east-1 --template-file template-out.yaml --stack-name $npm_package_config_stackName  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=development 'OrganizationParam'=sample-org --no-fail-on-empty-changeset ",
+    "deploy": "sam deploy --region us-east-1 --template-file template-out.yaml --stack-name $npm_package_config_stackName  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=development 'OrganizationParam'=sample-org --no-fail-on-empty-changeset ",
     "package-deploy": "npm run build && npm run package && npm run deploy",
     "delete-stack": "aws cloudformation delete-stack --stack-name $npm_package_config_stackName --region us-east-1 ",
     "build": "npx webpack-cli",
@@ -24,6 +24,7 @@
     "aws-xray-sdk-core": "^3.3.3",
     "http-status-codes": "^2.2.0",
     "lodash-es": "^4.17.21",
+    "sharp": "^0.30.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

@@ -65,6 +65,7 @@ Resources:
         LAMBDA_ALIAS: !Ref Stage
       Auth:
         ApiKeyRequired: false
+        AddDefaultAuthorizerToCorsPreflight: true
         UsagePlan:
           CreateUsagePlan: PER_API
           UsagePlanName: GatewayAuthorization   
@@ -124,15 +125,15 @@ Resources:
       Handler: app.assetHandler
       Environment:
         Variables:
-          UploadBucket: !Ref S3UploadBucket  
+          UploadBucket: !Ref S3OriginalImageBucket  
       Policies:
         - S3WritePolicy:
-            BucketName: !Ref S3UploadBucket
+            BucketName: !Ref S3OriginalImageBucket
         ## This permission allows the Lambda function to request signed URLs
         ## for objects that will be publicly readable. Uncomment if you want this ACL.
         # - Statement:
         #   - Effect: Allow
-        #     Resource: !Sub 'arn:aws:s3:::${S3UploadBucket}/'
+        #     Resource: !Sub 'arn:aws:s3:::${S3OriginalImageBucket}/'
         #     Action:
         #       - s3:putObjectAcl
       Events:
@@ -148,10 +149,25 @@ Resources:
           Properties:
             Path: /asset/uploads
             Method: OPTIONS
-            RestApiId: !Ref ApiGatewayEndpoint      
+            RestApiId: !Ref ApiGatewayEndpoint   
+
+  ThumbnailFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: dist/
+      Handler: app.thumbnailHandler
+      Environment:
+        Variables:
+          ThumnilBucket: !Ref S3ThumnilImageBucket  
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref S3OriginalImageBucket
+            Events: s3:ObjectCreated:*             
    
 
-  S3UploadBucket:
+  S3OriginalImageBucket:
     Type: AWS::S3::Bucket
     Properties:
       CorsConfiguration:
@@ -164,6 +180,20 @@ Resources:
             - HEAD
           AllowedOrigins:
             - "*"
+            
+  S3ThumnilImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+            - "*"
+          AllowedMethods:
+            - GET
+            - PUT
+            - HEAD
+          AllowedOrigins:
+            - "*"          
 
   S3AppBucket:
     Type: AWS::S3::Bucket
@@ -198,10 +228,15 @@ Outputs:
     Description: "ApiGatewayEndpoint endpoint URL for"
     Value: !Sub 'https://${ApiGatewayEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
 
-  S3UploadBucketName:
+  S3OriginalImageBucketName:
     Description: "S3 bucket for application uploads"
-    Value: !Ref 'S3UploadBucket'   
+    Value: !Ref 'S3OriginalImageBucket'  
+
+  S3ThumnilImageBucket:
+    Description: "S3 bucket for application uploads"
+    Value: !Ref 'S3ThumnilImageBucket'   
 
   WebsiteURL:
     Value: !GetAtt S3AppBucket.WebsiteURL
     Description: URL for website hosted on S3   
+

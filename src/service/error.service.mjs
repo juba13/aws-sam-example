@@ -25,6 +25,9 @@ class AppError extends Error {
   static tokenError = (message) => { return AppError.create(message).addName("tokenError") }
   static dbError = (message) => { return AppError.create(message).addName("tokenError") }
   static notFoundError = (message) => { return AppError.create(message).addName("notFoundError") }
+  static notSupportedError = (message) => { return AppError.create(message).addName("notSupportedError") }
+  static apiCallError = (message) => { return AppError.create(message).addName("apiCallError") }
+  static unknownError = (message) => { return AppError.create(message).addName("unknownError") }
 }
 
 export { AppError as error}
