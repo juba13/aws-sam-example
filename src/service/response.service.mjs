@@ -6,64 +6,31 @@ const corsHeaders = {
 }
 
 class AppResponse{
-    constructor() {
-    }
-    static create = () => { 
-      return new AppResponse();
-    } 
-
-    addBody = (body) => {
-      this.body= body;
-      return this;
-    } 
-
-    addStatusCode = (statusCode) => {
-      this.statusCode= statusCode;
-      return this;
-    } 
-
-
-    static ok = (data) => {
-      const response = {
-        statusCode: 200,
-        headers: {
-          ...corsHeaders
-        },
-        body: JSON.stringify({
-          ok: true,
-          data
-        })
+ 
+ static response = ( data ={},error  , statusCode =200 ) => {
+    let body = {}
+    const response = {
+      statusCode,
+      headers: {
+        ...corsHeaders
       }
-      return response
     }
-  
-    static error = (error, statusCode ) => {
-      if (!statusCode) statusCode = error.statusCode || 500
-  
-      if (error.length) {
-        // handle batch of errors
+    if(statusCode == 200){
+      body = { ok: true, data }
+    }else{
+      const message = typeof error === 'string' ? error : error.message
+      body = {
+        ok: false,
+        status: statusCode,
+        error: message,
+        data: typeof error === 'object' ? error?.data : {}
       }
-  
-      const message = typeof error === 'string'
-        ? error
-        : error.message
-  
-      const response = {
-        statusCode,
-        headers: {
-          ...corsHeaders
-        },
-        body: JSON.stringify({
-          ok: false,
-          status: statusCode,
-          error: message,
-          data: typeof error === 'object' ? error?.data : {}
-        })
-      }
-      return response
     }
+    response.body = JSON.stringify(body) ;
+    return response;
+  }
 
-
+  static success = ( data) => { return AppResponse.response(data) };
+  static error = (error , statusCode = '500') => { return AppResponse.response(null ,error ,statusCode);} 
 }
-
-export { AppResponse as response }
+export {AppResponse as response} ; 

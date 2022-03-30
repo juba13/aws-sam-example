@@ -1,8 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-
-Description: >
-  sam-test-2
+Description: "aws sam sample application"
 
 Parameters:
   Stage:
@@ -73,56 +71,73 @@ Resources:
         AllowMethods: "'*'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-        AllowCredentials: "'*'"      
+        AllowCredentials: "'*'"    
 
-
-  ModelHandelerFunction:
+  PatientSaveHandelerFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: dist/
-      Handler: app.modelHandler
+      Handler: appPatient.saveHandler
       Events:
         ModelPostAPI:
           Type: Api
           Properties:
             RestApiId: !Ref ApiGatewayEndpoint
-            Path: /model/{modelName}
+            Path: /patient
             Method: POST
-        ModelUpdateAPI:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGatewayEndpoint
-            Path: /model/{modelName}
-            Method: PUT
-        ModelGetAPI:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGatewayEndpoint
-            Path: /model/{modelName}/{modelId}
-            Method: GET
-        ModelDeleteAPI:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGatewayEndpoint
-            Path: /model/{modelName}/{modelId}
-            Method: DELETE  
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref dynamodbPatientTable  
+        - AWSLambdaExecute # Managed Policy
+        - Version: "2012-10-17" 
+          Statement:
+            - Effect: Allow
+              Action:
+                - "dynamodb:PutItem"
+              Resource:
+                - !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}"    
 
-  dynamodbPatientTable:
-    Type: AWS::Serverless::SimpleTable
-    Properties:
-      PrimaryKey:
-        Name: id
-        Type: String
-      TableName: dynamodbPatientTable      
-
-  UploadRequestFunction:
+  PatientGetHandelerFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: dist/
-      Handler: app.assetHandler
+      Handler: appPatient.getHandler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamodbPatientTable  
+      Events:
+        ModelPostAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayEndpoint
+            Path: /patient/{id}
+            Method: GET
+      Policies:
+        - AWSLambdaExecute # Managed Policy
+        - Version: "2012-10-17" 
+          Statement:
+            - Effect: Allow
+              Action:
+                - "dynamodb:GetItem"
+              Resource:
+                - !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}"        
+
+
+  DynamodbPatientTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "patient_table"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: # required, list of AttributeDefinition
+        - AttributeName: "id"
+          AttributeType: "S"
+      KeySchema: # required, list of KeySchema
+        - AttributeName: "id"
+          KeyType: "HASH"    
+
+  S3SignedFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: dist/
+      Handler: appS3Signed.handler
       Environment:
         Variables:
           UploadBucket: !Ref S3OriginalImageBucket  
@@ -144,18 +159,12 @@ Resources:
             Method: get
             RestApiId: !Ref ApiGatewayEndpoint   
 
-        UploadAssetAPIOption:
-          Type: Api
-          Properties:
-            Path: /asset/uploads
-            Method: OPTIONS
-            RestApiId: !Ref ApiGatewayEndpoint   
 
   ThumbnailFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: dist/
-      Handler: app.thumbnailHandler
+      Handler: appThumbnail.handler
       Environment:
         Variables:
           ThumnilBucket: !Ref S3ThumnilImageBucket  

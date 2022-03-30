@@ -1,6 +1,6 @@
-import { response } from "../service/response.service.mjs";
-import { file_upload_signed_url } from "../service/s3.service.mjs";
-import { log } from "../service/log.service.mjs";
+import { response } from "./service/response.service.mjs";
+import { file_upload_signed_url } from "./service/s3.service.mjs";
+import { log } from "./service/log.service.mjs";
 
 
 export const handler = async (event, context) => {
@@ -17,13 +17,6 @@ export const handler = async (event, context) => {
       
     } catch (e) {
       return response.error(e.stack)
-    }
-}; 
-export const thumbnailHandler = async (event, context) => {
-    try {
-      await create_image_thumbnail(event)
-    } catch (e) {
-       
     }
 }; 
 

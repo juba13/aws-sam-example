@@ -1,8 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'sam-test-2
-
-  '
+Description: aws sam sample application
 Parameters:
   Stage:
     Type: String
@@ -84,60 +82,77 @@ Resources:
         AllowCredentials: '''*'''
     Metadata:
       SamResourceId: ApiGatewayEndpoint
-  ModelHandelerFunction:
+  PatientSaveHandelerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/a1289ae7588a6b51ef22ec6f23bb54cf
-      Handler: app.modelHandler
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      Handler: appPatient.saveHandler
       Events:
         ModelPostAPI:
           Type: Api
           Properties:
             RestApiId:
               Ref: ApiGatewayEndpoint
-            Path: /model/{modelName}
+            Path: /patient
             Method: POST
-        ModelUpdateAPI:
-          Type: Api
-          Properties:
-            RestApiId:
-              Ref: ApiGatewayEndpoint
-            Path: /model/{modelName}
-            Method: PUT
-        ModelGetAPI:
-          Type: Api
-          Properties:
-            RestApiId:
-              Ref: ApiGatewayEndpoint
-            Path: /model/{modelName}/{modelId}
-            Method: GET
-        ModelDeleteAPI:
-          Type: Api
-          Properties:
-            RestApiId:
-              Ref: ApiGatewayEndpoint
-            Path: /model/{modelName}/{modelId}
-            Method: DELETE
       Policies:
-      - DynamoDBCrudPolicy:
-          TableName:
-            Ref: dynamodbPatientTable
+      - AWSLambdaExecute
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:PutItem
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}
     Metadata:
-      SamResourceId: ModelHandelerFunction
-  dynamodbPatientTable:
-    Type: AWS::Serverless::SimpleTable
-    Properties:
-      PrimaryKey:
-        Name: id
-        Type: String
-      TableName: dynamodbPatientTable
-    Metadata:
-      SamResourceId: dynamodbPatientTable
-  UploadRequestFunction:
+      SamResourceId: PatientSaveHandelerFunction
+  PatientGetHandelerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/a1289ae7588a6b51ef22ec6f23bb54cf
-      Handler: app.assetHandler
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      Handler: appPatient.getHandler
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: DynamodbPatientTable
+      Events:
+        ModelPostAPI:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+            Path: /patient/{id}
+            Method: GET
+      Policies:
+      - AWSLambdaExecute
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}
+    Metadata:
+      SamResourceId: PatientGetHandelerFunction
+  DynamodbPatientTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Sub: patient_table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    Metadata:
+      SamResourceId: DynamodbPatientTable
+  S3SignedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      Handler: appS3Signed.handler
       Environment:
         Variables:
           UploadBucket:
@@ -154,20 +169,13 @@ Resources:
             Method: get
             RestApiId:
               Ref: ApiGatewayEndpoint
-        UploadAssetAPIOption:
-          Type: Api
-          Properties:
-            Path: /asset/uploads
-            Method: OPTIONS
-            RestApiId:
-              Ref: ApiGatewayEndpoint
     Metadata:
-      SamResourceId: UploadRequestFunction
+      SamResourceId: S3SignedFunction
   ThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/a1289ae7588a6b51ef22ec6f23bb54cf
-      Handler: app.thumbnailHandler
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      Handler: appThumbnail.handler
       Environment:
         Variables:
           ThumnilBucket:

@@ -8,6 +8,6 @@ architecture = "x86_64"
 handler = "app.modelHandler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["ModelHandelerFunction", "UploadRequestFunction", "ThumbnailFunction"]
+functions = ["PatientSaveHandelerFunction", "PatientGetHandelerFunction", "S3SignedFunction", "ThumbnailFunction"]
 
 [layer_build_definitions]

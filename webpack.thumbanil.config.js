@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  entry: './src/app.mjs',
+  entry: './src/appThumbnail.mjs',
   target: "node",
   externals: ["aws-sdk"],
   mode: "development",
@@ -9,7 +9,7 @@ module.exports = {
   devtool: 'source-map',
   output: {
     path: path.join(__dirname, "dist"),
-    filename: "app.js",
+    filename: "appThumbnail.js",
     libraryTarget: "commonjs2"
   },
 };
