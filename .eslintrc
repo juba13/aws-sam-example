@@ -1,0 +1,24 @@
+{
+  "root": true,
+  "ignorePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    "test-results/**"
+  ],
+  "env": {
+    "jest": true
+  },
+  "parser": "babel-eslint",
+  "extends": [
+    "standard",
+    "eslint:recommended"
+  ],
+  "rules": {
+    "camelcase": "off",
+    "import/export": "off",
+    "prefer-rest-params": "off",
+    "no-unused-vars": "off",
+    "no-use-before-define": "off"
+  }
+}

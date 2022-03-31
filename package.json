@@ -16,7 +16,9 @@
     "package-deploy": "npm run build && npm run package && npm run deploy",
     "delete-stack": "aws cloudformation delete-stack --stack-name $npm_package_config_stackName --region us-east-1 ",
     "build": "npx concurrently -m 3 \"npx webpack-cli --config webpack.patient.config.js\" \"npx webpack-cli --config webpack.s3signed.config.js\" \"npx webpack-cli --config webpack.thumbanil.config.js\"",
-    "local-run": "npm run build && sudo sam local start-api"
+    "local-run": "npm run build && sudo sam local start-api",
+    "lint": "eslint . --ext .mjs,.js",
+    "lint:fix": "eslint . --ext .mjs,.js --fix"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.41.0",
@@ -42,6 +44,14 @@
     "source-map-loader": "^3.0.0",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.7.2",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1"
+  
   }
 }
