@@ -5,32 +5,30 @@ import { error } from './error.service.mjs'
 
 const URL_EXPIRATION_SECONDS = 300
 
-export const file_upload_signed_url = async (event) => {
+export const file_upload_signed_url = async (ref) => {
   config.update({ region: process.env.AWS_REGION })
   const s3 = new S3()
   const randomID = parseInt(Math.random() * 10000000)
-  const Key = `${randomID}.jpg`
-  // const Key = 'f478247384.jpg'
-
   // Get signed URL from S3
   const s3Params = {
     Bucket: process.env.UploadBucket,
-    Key: Key,
+    Key: ref,
     Expires: URL_EXPIRATION_SECONDS,
-    ContentType: 'image/jpeg'
-    // for publicly readable
-    // ACL: 'public-read'
+    ContentType: 'image/jpeg',
+    ACL: 'public-read'
   }
 
   log.info('AWS_REGION: ', process.env.AWS_REGION)
   log.info('Params: ', s3Params)
   const uploadURL = await s3.getSignedUrlPromise('putObject', s3Params)
-  return { uploadURL: uploadURL, Key }
+  return { uploadURL: uploadURL, ref }
 }
 
 export const create_image_thumbnail = async (event) => {
+  const util = require('util');
+  const sharp = require('sharp');
+
   log.info('Reading options from event:\n', util.inspect(event, { depth: 5 }))
-  const sharp = require('sharp')
   const s3 = new S3()
   const srcBucket = event.Records[0].s3.bucket.name
   // Object key may have spaces or unicode non-ASCII characters.

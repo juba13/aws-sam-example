@@ -1,0 +1,50 @@
+<md-dialog>
+    <form ng-cloak>
+         
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Patient Info</h2>
+            </div>
+        </md-toolbar>
+ 
+        <md-dialog-content>
+            <div class="md-dialog-content">
+               
+                <md-input-container  class="md-block"  >
+
+                    <img src="{{image_url}}"  />
+                    <div ng-if="is_save===true">
+                        <input  ng-if="is_save"   type="file" type="file" name="file" onchange="angular.element(this).scope().onFileChange(this.files)">
+                    </div>
+                      
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Name</label>
+                    <input ng-model="fullname" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Age</label>
+                    <input ng-model="age" type="number"  ng-min="0"  ng-max="150" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Gender</label>
+                    <input ng-model="gender" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>email</label>
+                    <input ng-model="email" type="email" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Address</label>
+                    <input ng-model="address">
+                </md-input-container>
+ 
+            </div>
+        </md-dialog-content>
+ 
+        <md-dialog-actions layout="row">
+            <md-button ng-click="cancel()">Cancel</md-button>
+            <md-button ng-if="is_save" ng-click="savePatient()" class="md-primary">Save</md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

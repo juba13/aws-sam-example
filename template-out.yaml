@@ -9,6 +9,10 @@ Parameters:
     AllowedValues:
     - staging
     - production
+  OrganizationParam:
+    Type: String
+    Default: test_organization
+    Description: Name of the orgaization
 Conditions:
   IsProduction:
     Fn::Equals:
@@ -85,8 +89,12 @@ Resources:
   PatientSaveHandelerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/d53fdf4ee5c1799f60e7e69e82285298
       Handler: appPatient.saveHandler
+      Environment:
+        Variables:
+          PATIENT_TABLE_NAME:
+            Ref: DynamodbPatientTable
       Events:
         ModelPostAPI:
           Type: Api
@@ -109,11 +117,11 @@ Resources:
   PatientGetHandelerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/d53fdf4ee5c1799f60e7e69e82285298
       Handler: appPatient.getHandler
       Environment:
         Variables:
-          TABLE_NAME:
+          PATIENT_TABLE_NAME:
             Ref: DynamodbPatientTable
       Events:
         ModelPostAPI:
@@ -134,6 +142,62 @@ Resources:
           - Fn::Sub: arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}
     Metadata:
       SamResourceId: PatientGetHandelerFunction
+  PatientGetAllHandelerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/d53fdf4ee5c1799f60e7e69e82285298
+      Handler: appPatient.getAllHandler
+      Environment:
+        Variables:
+          PATIENT_TABLE_NAME:
+            Ref: DynamodbPatientTable
+      Events:
+        ModelPostAPI:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+            Path: /patient/all
+            Method: GET
+      Policies:
+      - AWSLambdaExecute
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:scan
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}
+    Metadata:
+      SamResourceId: PatientGetAllHandelerFunction
+  PatientDeleteHandelerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/d53fdf4ee5c1799f60e7e69e82285298
+      Handler: appPatient.deleteHandler
+      Environment:
+        Variables:
+          PATIENT_TABLE_NAME:
+            Ref: DynamodbPatientTable
+      Events:
+        ModelPostAPI:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayEndpoint
+            Path: /patient/{id}
+            Method: DELETE
+      Policies:
+      - AWSLambdaExecute
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:DeleteItem
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}
+    Metadata:
+      SamResourceId: PatientDeleteHandelerFunction
   DynamodbPatientTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -151,7 +215,7 @@ Resources:
   S3SignedFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/d53fdf4ee5c1799f60e7e69e82285298
       Handler: appS3Signed.handler
       Environment:
         Variables:
@@ -161,11 +225,17 @@ Resources:
       - S3WritePolicy:
           BucketName:
             Ref: S3OriginalImageBucket
+      - Statement:
+        - Effect: Allow
+          Resource:
+            Fn::Sub: arn:aws:s3:::${S3OriginalImageBucket}/
+          Action:
+          - s3:putObjectAcl
       Events:
         UploadAssetAPI:
           Type: Api
           Properties:
-            Path: /asset/uploads
+            Path: /s3/signed-path/{ref}
             Method: get
             RestApiId:
               Ref: ApiGatewayEndpoint
@@ -174,7 +244,7 @@ Resources:
   ThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/55b5a9ec53ef30c5cbb2512f315254d6
+      CodeUri: s3://aws-sam-cli-managed-default-samclisourcebucket-6975gf9s18dj/d53fdf4ee5c1799f60e7e69e82285298
       Handler: appThumbnail.handler
       Environment:
         Variables:

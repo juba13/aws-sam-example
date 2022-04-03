@@ -5,14 +5,8 @@ import { error } from './service/error.service.mjs'
 
 export const handler = async (event, context) => {
   try {
-    switch (event.httpMethod) {
-      case 'GET':
-        return response.ok(await file_upload_signed_url(event))
-      case 'OPTIONS':
-        return response.ok('ok')
-      default:
-        throw error.notFoundError('Method notfound : ' + event.httpMethod)
-    }
+    log.info("Call for signed s3 path " ,event.pathParameters.ref)
+    return response.success(await file_upload_signed_url(event.pathParameters.ref))
   } catch (e) {
     return response.error(e.stack)
   }

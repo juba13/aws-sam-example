@@ -10,6 +10,11 @@ Parameters:
     AllowedValues:
       - staging
       - production
+  OrganizationParam:
+    Type: String
+    Default: test_organization
+    Description: Name of the orgaization
+  
 
 Conditions:
   IsProduction: !Equals [ !Ref Stage, production ]
@@ -71,13 +76,17 @@ Resources:
         AllowMethods: "'*'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-        AllowCredentials: "'*'"    
+        AllowCredentials: "'*'"   
+
 
   PatientSaveHandelerFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: dist/
       Handler: appPatient.saveHandler
+      Environment:
+        Variables:
+          PATIENT_TABLE_NAME: !Ref DynamodbPatientTable  
       Events:
         ModelPostAPI:
           Type: Api
@@ -102,14 +111,15 @@ Resources:
       Handler: appPatient.getHandler
       Environment:
         Variables:
-          TABLE_NAME: !Ref DynamodbPatientTable  
+          PATIENT_TABLE_NAME: !Ref DynamodbPatientTable  
       Events:
         ModelPostAPI:
           Type: Api
           Properties:
             RestApiId: !Ref ApiGatewayEndpoint
             Path: /patient/{id}
-            Method: GET
+            Method: GET 
+
       Policies:
         - AWSLambdaExecute # Managed Policy
         - Version: "2012-10-17" 
@@ -120,6 +130,56 @@ Resources:
               Resource:
                 - !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}"        
 
+  PatientGetAllHandelerFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: dist/
+      Handler: appPatient.getAllHandler
+      Environment:
+        Variables:
+          PATIENT_TABLE_NAME: !Ref DynamodbPatientTable  
+      Events:
+        ModelPostAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayEndpoint
+            Path: /patient/all
+            Method: GET 
+      Policies:
+        - AWSLambdaExecute # Managed Policy
+        - Version: "2012-10-17" 
+          Statement:
+            - Effect: Allow
+              Action:
+                - "dynamodb:scan"
+              Resource:
+                - !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}"        
+
+ 
+  PatientDeleteHandelerFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: dist/
+      Handler: appPatient.deleteHandler
+      Environment:
+        Variables:
+          PATIENT_TABLE_NAME: !Ref DynamodbPatientTable  
+      Events:
+        ModelPostAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayEndpoint
+            Path: /patient/{id}
+            Method: DELETE 
+      Policies:
+        - AWSLambdaExecute # Managed Policy
+        - Version: "2012-10-17" 
+          Statement:
+            - Effect: Allow
+              Action:
+                - "dynamodb:DeleteItem"
+              Resource:
+                - !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamodbPatientTable}" 
 
   DynamodbPatientTable:
     Type: AWS::DynamoDB::Table
@@ -144,18 +204,16 @@ Resources:
       Policies:
         - S3WritePolicy:
             BucketName: !Ref S3OriginalImageBucket
-        ## This permission allows the Lambda function to request signed URLs
-        ## for objects that will be publicly readable. Uncomment if you want this ACL.
-        # - Statement:
-        #   - Effect: Allow
-        #     Resource: !Sub 'arn:aws:s3:::${S3OriginalImageBucket}/'
-        #     Action:
-        #       - s3:putObjectAcl
+        - Statement:
+          - Effect: Allow
+            Resource: !Sub 'arn:aws:s3:::${S3OriginalImageBucket}/'
+            Action:
+              - s3:putObjectAcl
       Events:
         UploadAssetAPI:
           Type: Api
           Properties:
-            Path: /asset/uploads
+            Path: /s3/signed-path/{ref}
             Method: get
             RestApiId: !Ref ApiGatewayEndpoint   
 
