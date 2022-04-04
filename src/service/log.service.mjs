@@ -1,5 +1,4 @@
 class AppLog {
-
   static log = (data, ...args) => { console.info(data, ...args) }
   static info = (data, ...args) => { console.info(data, ...args) }
   static debug = (data, ...args) => { console.debug(data, ...args) }
@@ -8,7 +7,6 @@ class AppLog {
   static critical = (data, ...args) => { console.critical(data, ...args) }
 }
 export { AppLog as log }
-
 
 // var log = (function () {
 //   return {

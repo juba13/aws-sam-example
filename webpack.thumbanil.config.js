@@ -1,9 +1,9 @@
 const path = require('path')
 
 module.exports = {
-  entry: './src/appThumbnail.mjs',
+  entry: './src/appThumbnail.js',
   target: 'node',
-  externals: ['aws-sdk'],
+  externals: ['aws-sdk','sharp'],
   mode: 'development',
   // mode: "production",
   devtool: 'source-map',

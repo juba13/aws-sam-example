@@ -1,11 +1,11 @@
-const faker = require("faker");
+const faker = require('faker')
 class DBService {
   static save = (tableName, item) => {
-    return item;
+    return item
   };
 
   static batchSave = (tableName, itemList) => {
-    return itemList;
+    return itemList
   }
 
   static getByPk = (tableName, value) => {

@@ -2,7 +2,7 @@ import { error } from './service/error.service.mjs'
 import { log } from './service/log.service.mjs'
 import { response } from './service/response.service.mjs'
 import { patientInfo } from './service/db.service.mjs'
-import {  checkValidation } from './service/common.service.mjs'
+import { checkValidation } from './service/common.service.mjs'
 
 const PATIENT_TABLE_NAME = process.env.TABLE_NAME
 
@@ -22,31 +22,30 @@ export const saveHandler = async (event, context) => {
 
 export const getHandler = async (event, context) => {
   try {
-    log.info('Patient get Start', event.pathParameters.id) 
-    return response.success(await patientInfo.getItemById("id",event.pathParameters.id))
+    log.info('Patient get Start', event.pathParameters.id)
+    return response.success(await patientInfo.getItemById('id', event.pathParameters.id))
   } catch (e) {
-    log.info('Patient get failed',e.message) 
+    log.info('Patient get failed', e.message)
     return response.error(e)
   }
 }
 
-
 export const getAllHandler = async (event, context) => {
   try {
-    log.info('Patient getall Start') 
+    log.info('Patient getall Start')
     return response.success(await patientInfo.getAll())
   } catch (e) {
-    log.info('Patient getall failed',e.message) 
+    log.info('Patient getall failed', e.message)
     return response.error(e)
   }
 }
 
 export const deleteHandler = async (event, context) => {
   try {
-    log.info('delete patient start', event.pathParameters.id ) 
-    return response.success(await patientInfo.deleteItemById("id",event.pathParameters.id))
+    log.info('delete patient start', event.pathParameters.id)
+    return response.success(await patientInfo.deleteItemById('id', event.pathParameters.id))
   } catch (e) {
-    log.info('delete patient failed', e.message) 
+    log.info('delete patient failed', e.message)
     return response.error(e)
   }
 }
@@ -62,5 +61,5 @@ const schema = {
     email: { type: 'string' },
     address: { type: 'string' }
   },
-  required: [ 'id', 'fullname', 'age', 'gender', 'email']
+  required: ['id', 'fullname', 'age', 'gender', 'email']
 }
