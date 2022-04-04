@@ -9,8 +9,14 @@
     "stackName": "sam-example-app-stack",
     "bucketName": "sam-example-app-bucket"
   },
+  "type": "module",
   "jest": {
-    "verbose": true
+    "verbose": true,
+    "testMatch": ["**/__tests__/*.?(m)js", "**/?(*.)+_test?(.bs).js?(x)"],
+    "moduleFileExtensions": ["js", "jsx", "mjs"],
+    "transform": {
+      "^.+\\.mjs$": "babel-jest"
+    }
   },
   "scripts": {
     "package": "sam build --region us-east-1 && sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
