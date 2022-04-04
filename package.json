@@ -9,6 +9,9 @@
     "stackName": "sam-example-app-stack",
     "bucketName": "sam-example-app-bucket"
   },
+  "jest": {
+    "verbose": true
+  },
   "scripts": {
     "package": "sam build --region us-east-1 && sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
     "describe": "aws cloudformation describe-stacks --region us-east-1 --stack-name $npm_package_config_stackName --query 'Stacks[].Outputs'",
@@ -18,7 +21,8 @@
     "build": "npx concurrently -m 3 \"npx webpack-cli --config webpack.patient.config.js\" \"npx webpack-cli --config webpack.s3signed.config.js\" \"npx webpack-cli --config webpack.thumbanil.config.js\"",
     "local": "npm run build && sudo sam local start-api",
     "lint": "eslint . --ext .mjs,.js",
-    "lint:fix": "eslint . --ext .mjs,.js --fix"
+    "lint:fix": "eslint . --ext .mjs,.js --fix",
+    "test": "jest --coverage"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.41.0",
@@ -31,7 +35,8 @@
     "http-status-codes": "^2.2.0",
     "image-resize-compress": "^1.0.8",
     "lodash-es": "^4.17.21",
-    "sharp": "0.29.3",
+    "node-fetch": "^3.2.3",
+    "sharp": "^0.30.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

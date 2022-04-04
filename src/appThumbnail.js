@@ -1,10 +1,11 @@
 import { log } from './service/log.service.mjs'
 import { error } from './service/error.service.mjs'
 import { S3 } from 'aws-sdk'
+import fetch from 'node-fetch';
+
 const util = require('util')
 const sharp = require('sharp')
-// import { blobToURL, urlToBlob, fromBlob, fromURL } from 'image-resize-compress';
-// import { Blob } from "buffer";
+import {  fromBlob } from 'image-resize-compress';
 
 export const handler = async (event, context) => {
   try {
@@ -22,7 +23,8 @@ const create_image_thumbnail = async (event) => {
   // Object key may have spaces or unicode non-ASCII characters.
   const srcKey = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '))
   const dstBucket = process.env.ThumnilBucket
-  const dstKey = 'resized-' + srcKey
+  const dstKey = 'resized-' + dstBucket
+  const publicUrl =  `https://${srcBucket}.s3.amazonaws.com/${srcKey}`
 
   // Infer the image type from the file suffix.
   const typeMatch = srcKey.match(/\.([^.]*)$/)
@@ -51,17 +53,21 @@ const create_image_thumbnail = async (event) => {
   // set thumbnail width. Resize will set the height automatically to maintain aspect ratio.
   const width = 200
 
-  // // Use the sharp module to resize the image and save in a buffer.
+  // Use the sharp module to resize the image and save in a buffer.
   try {
     var buffer = await sharp(origimage.Body).resize(width).toBuffer()
   } catch (err) {
     throw error.apiCallError(err.message)
   }
-  // console.log("Resize Start");
-  // fromBlob(new Blob([origimage.Body ]), 80, 200, 120, 'jpeg').then((blob) => {
-  //     console.log("Done");
-  //     console.log(blob);
-  // });
+
+
+  // console.log("Resize Start" , publicUrl);
+  // const  orginalBlob = await fetch(publicUrl).then(r => r.blob());
+  // console.log(orginalBlob);
+  // const resizeBlob = await fromBlob(orginalBlob, 80, 200, 120, 'jpeg');
+  // console.log("Done");
+  // console.log(resizeBlob);
+    
 
   // Upload the thumbnail image to the destination bucket
   try {
