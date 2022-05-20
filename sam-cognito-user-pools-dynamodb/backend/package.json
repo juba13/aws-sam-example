@@ -1,0 +1,19 @@
+{
+  "name": "sam-api-cognito-user-pools-dynamodb",
+  "version": "1.0.0",
+  "config": {
+    "stackName": "sam-api-cognito-user-pools-dynamodb",
+    "bucketName": "sam-api-cognito-user-pools-dynamodb-bucket"
+  },
+  "scripts": {
+    "package": "sam build --region us-east-1 && sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
+    "deploy": " sam deploy --region us-east-1 --template-file template-out.yaml --stack-name $npm_package_config_stackName  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=development 'OrganizationParam'=sample-org --no-fail-on-empty-changeset ",
+    "describe": "aws cloudformation describe-stacks --region us-east-1 --stack-name $npm_package_config_stackName --query 'Stacks[].Outputs'",
+    "up": "npm run package && npm run deploy",
+    "down": "aws cloudformation delete-stack --stack-name $npm_package_config_stackName --region us-east-1 "
+   
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
