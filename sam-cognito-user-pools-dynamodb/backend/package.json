@@ -6,12 +6,11 @@
     "bucketName": "sam-api-cognito-user-pools-dynamodb-bucket"
   },
   "scripts": {
-    "package": "sam build --region us-east-1 && sam package --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
-    "deploy": " sam deploy --region us-east-1 --template-file template-out.yaml --stack-name $npm_package_config_stackName  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=development 'OrganizationParam'=sample-org --no-fail-on-empty-changeset ",
-    "describe": "aws cloudformation describe-stacks --region us-east-1 --stack-name $npm_package_config_stackName --query 'Stacks[].Outputs'",
+    "package": "source .npmrc ; sam build && sam package  --region $region --profile $awsProfile --template-file template.yaml --resolve-s3 --output-template-file template-out.yaml",
+    "deploy": " source .npmrc ; sam deploy --region $region --profile $awsProfile  --template-file template-out.yaml --stack-name $cloudFormationStackName  --capabilities CAPABILITY_NAMED_IAM --parameter-overrides 'StageParam'=$stage 'OrganizationParam'=$organizationParam --no-fail-on-empty-changeset ",
+    "describe": "source .npmrc ; aws cloudformation describe-stacks --region $region --profile $awsProfile   --stack-name $cloudFormationStackName  --query 'Stacks[].Outputs'",
     "up": "npm run package && npm run deploy",
-    "down": "aws cloudformation delete-stack --stack-name $npm_package_config_stackName --region us-east-1 "
-   
+    "down": "aws cloudformation delete-stack --region $region --profile $awsProfile   --stack-name $cloudFormationStackName "
   },
   "keywords": [],
   "author": "",
