@@ -41,7 +41,7 @@ Resources:
   MyApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: !Sub "models-api-${Stage}"
+      Name: !Sub "${OrganizationParam}-cognto-test-${Stage}-${AWS::AccountId}"
       StageName: !Ref Stage
       Cors: 
         AllowMethods: "'*'"
@@ -59,7 +59,7 @@ Resources:
   HelloFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
-      Handler: app.hello
+      Handler: app.lambdaHandler
       CodeUri: ./src
       Events:
         HelloAPI:
@@ -67,7 +67,7 @@ Resources:
           Properties:
             RestApiId: !Ref MyApi
             Path: /hello
-            Method: GET
+            Method: POST
   
   MyCognitoUserPool:
     Type: AWS::Cognito::UserPool
@@ -90,6 +90,9 @@ Resources:
     Properties:
       ClientName: sam_api_gateway_cup_auth_cognito_client
       UserPoolId: !Ref MyCognitoUserPool
+      ExplicitAuthFlows: 
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
   
   PreSignupLambdaFunction:
     Type: AWS::Serverless::Function
